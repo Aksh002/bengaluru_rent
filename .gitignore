@@ -1,0 +1,12 @@
+.env*
+!.env.example
+.next
+.verify-*
+node_modules
+out
+dist
+coverage
+*.tsbuildinfo
+vercel.json.local
+dev-server*.log
+.agents
