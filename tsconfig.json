@@ -30,7 +30,8 @@
     }
   },
   "include": [
-    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    ".verify-*/types/**/*.ts",
     "app/**/*.ts",
     "app/**/*.tsx",
     "components/**/*.ts",
@@ -39,10 +40,9 @@
     "hooks/**/*.tsx",
     "lib/**/*.ts",
     "lib/**/*.tsx",
+    "next-env.d.ts",
     "store/**/*.ts",
-    "store/**/*.tsx",
-    ".next/types/**/*.ts",
-    ".verify-*/types/**/*.ts"
+    "store/**/*.tsx"
   ],
   "exclude": [
     "node_modules"
