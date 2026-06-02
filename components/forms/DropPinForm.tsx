@@ -13,6 +13,7 @@ type DropPinPayload = {
   rent: number;
   bhk: number;
   furnished: boolean;
+  furnishing: PublicPin["furnishing"];
   gated: boolean;
   society_name: string;
   occupant_type: "family" | "bachelor" | "any";
@@ -20,16 +21,16 @@ type DropPinPayload = {
   comment: string;
 };
 
-type DropPinResponse = {
+type EditPinPayload = Omit<DropPinPayload, "lat" | "lng">;
+
+type PinResponse = {
   pin: PublicPin;
   error?: string;
 };
 
-async function submitPin(payload: DropPinPayload) {
+async function getAccessToken() {
   const supabase = createBrowserSupabaseClient();
-  if (!supabase) {
-    throw new Error("Supabase is not configured");
-  }
+  if (!supabase) throw new Error("Supabase is not configured");
 
   const {
     data: { session },
@@ -42,16 +43,22 @@ async function submitPin(payload: DropPinPayload) {
     throw new Error("Anonymous session could not be created");
   }
 
+  return activeSession.access_token;
+}
+
+async function submitPin(payload: DropPinPayload) {
+  const token = await getAccessToken();
+
   const response = await fetch("/api/pins", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${activeSession.access_token}`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   });
 
-  const body = (await response.json()) as DropPinResponse;
+  const body = (await response.json()) as PinResponse;
   if (!response.ok) {
     throw new Error(body.error || "Could not drop pin");
   }
@@ -59,27 +66,66 @@ async function submitPin(payload: DropPinPayload) {
   return body.pin;
 }
 
+async function updatePin({
+  pinId,
+  payload,
+}: {
+  pinId: string;
+  payload: EditPinPayload;
+}) {
+  const token = await getAccessToken();
+
+  const response = await fetch(`/api/pins/${pinId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const body = (await response.json()) as PinResponse;
+  if (!response.ok) {
+    throw new Error(body.error || "Could not update pin");
+  }
+
+  return body.pin;
+}
+
 export function DropPinForm({
   location,
+  editPin,
+  nearbyPins = [],
   onClose,
   onCreated,
 }: {
-  location: { lat: number; lng: number };
+  location?: { lat: number; lng: number };
+  editPin?: PublicPin;
+  nearbyPins?: PublicPin[];
   onClose: () => void;
   onCreated: (pin: PublicPin) => void;
 }) {
+  const isEditMode = !!editPin;
   const queryClient = useQueryClient();
-  const [rent, setRent] = useState("");
-  const [bhk, setBhk] = useState(2);
-  const [furnished, setFurnished] = useState(false);
-  const [gated, setGated] = useState(false);
-  const [societyName, setSocietyName] = useState("");
-  const [occupantType, setOccupantType] =
-    useState<DropPinPayload["occupant_type"]>("any");
-  const [depositMonths, setDepositMonths] = useState("");
-  const [comment, setComment] = useState("");
 
-  const mutation = useMutation({
+  const [rent, setRent] = useState(editPin ? String(editPin.rent) : "");
+  const [bhk, setBhk] = useState(editPin?.bhk ?? 2);
+  const [furnishing, setFurnishing] = useState<PublicPin["furnishing"]>(
+    editPin?.furnishing ?? (editPin?.furnished ? "furnished" : "unfurnished"),
+  );
+  const [gated, setGated] = useState(editPin?.gated ?? false);
+  const [societyName, setSocietyName] = useState(editPin?.society_name ?? "");
+  const [occupantType, setOccupantType] = useState<
+    DropPinPayload["occupant_type"]
+  >(editPin?.occupant_type ?? "any");
+  const [depositMonths, setDepositMonths] = useState(
+    editPin?.deposit_months !== null && editPin?.deposit_months !== undefined
+      ? String(editPin.deposit_months)
+      : "",
+  );
+  const [comment, setComment] = useState(editPin?.comment ?? "");
+
+  const createMutation = useMutation({
     mutationFn: submitPin,
     onSuccess: async (pin) => {
       await queryClient.invalidateQueries({ queryKey: ["pins"] });
@@ -87,12 +133,57 @@ export function DropPinForm({
     },
   });
 
+  const editMutation = useMutation({
+    mutationFn: updatePin,
+    onSuccess: async (pin) => {
+      await queryClient.invalidateQueries({ queryKey: ["pins"] });
+      onCreated(pin);
+    },
+  });
+
+  const mutation = isEditMode ? editMutation : createMutation;
+
+  const displayLocation = useMemo(
+    () =>
+      isEditMode && editPin
+        ? { lat: editPin.lat, lng: editPin.lng }
+        : location,
+    [editPin, isEditMode, location],
+  );
+
   const rentValue = Number(rent);
   const depositValue = depositMonths === "" ? null : Number(depositMonths);
+  const rentContext = useMemo(() => {
+    const source = displayLocation;
+    if (!source) return null;
+    const matching = nearbyPins
+      .filter((pin) => pin.bhk === bhk)
+      .filter((pin) => {
+        const latKm = (pin.lat - source.lat) * 111;
+        const lngKm =
+          (pin.lng - source.lng) * 111 * Math.cos((source.lat * Math.PI) / 180);
+        return Math.sqrt(latKm * latKm + lngKm * lngKm) <= 2;
+      })
+      .map((pin) => pin.rent)
+      .sort((a, b) => a - b);
+
+    if (matching.length < 3) return null;
+
+    const low = matching[Math.floor((matching.length - 1) * 0.25)];
+    const high = matching[Math.ceil((matching.length - 1) * 0.75)];
+    const format = new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    });
+
+    return `In this area, ${bhk}BHKs typically go for ${format.format(low)}-${format.format(high)}.`;
+  }, [bhk, displayLocation, nearbyPins]);
+
   const canSubmit = useMemo(
     () =>
       Number.isInteger(rentValue) &&
-      rentValue > 0 &&
+      rentValue >= 1000 &&
       rentValue < 1_000_000 &&
       Number.isInteger(bhk) &&
       bhk >= 1 &&
@@ -108,18 +199,27 @@ export function DropPinForm({
     event.preventDefault();
     if (!canSubmit || mutation.isPending) return;
 
-    mutation.mutate({
-      lat: location.lat,
-      lng: location.lng,
+    const payload = {
       rent: rentValue,
       bhk,
-      furnished,
+      furnished: furnishing !== "unfurnished",
+      furnishing,
       gated,
       society_name: societyName,
       occupant_type: occupantType,
       deposit_months: depositValue,
       comment,
-    });
+    };
+
+    if (isEditMode && editPin) {
+      editMutation.mutate({ pinId: editPin.id, payload });
+    } else if (location) {
+      createMutation.mutate({
+        lat: location.lat,
+        lng: location.lng,
+        ...payload,
+      });
+    }
   }
 
   return (
@@ -138,10 +238,12 @@ export function DropPinForm({
         <header className="flex items-start justify-between gap-4 border-b border-black/10 p-4 sm:p-5">
           <div>
             <p className="font-[var(--font-display)] text-2xl font-semibold leading-none">
-              Drop a rent pin
+              {isEditMode ? "Edit rent pin" : "Drop a rent pin"}
             </p>
             <p className="mt-1 text-sm text-[#61584e]">
-              Anonymous, approximate, and useful to the next renter.
+              {isEditMode
+                ? "Update your rent details."
+                : "Anonymous, approximate, and useful to the next renter."}
             </p>
           </div>
           <button
@@ -155,17 +257,22 @@ export function DropPinForm({
         </header>
 
         <div className="grid gap-4 overflow-y-auto p-4 sm:p-5">
-          <div className="flex items-center gap-3 rounded-lg border border-black/10 bg-[#fff8ec] p-3">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-[#16110d] text-white">
-              <MapPin size={20} />
+          {displayLocation ? (
+            <div className="flex items-center gap-3 rounded-lg border border-black/10 bg-[#fff8ec] p-3">
+              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-[#16110d] text-white">
+                <MapPin size={20} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold">
+                  {isEditMode ? "Pin location" : "Selected map point"}
+                </p>
+                <p className="font-mono text-xs text-[#61584e]">
+                  {displayLocation.lat.toFixed(5)},{" "}
+                  {displayLocation.lng.toFixed(5)}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold">Selected map point</p>
-              <p className="font-mono text-xs text-[#61584e]">
-                {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
-              </p>
-            </div>
-          </div>
+          ) : null}
 
           <label className="grid gap-2">
             <span className="text-sm font-bold">Rent per month</span>
@@ -174,7 +281,7 @@ export function DropPinForm({
               <input
                 className="h-12 min-w-0 flex-1 bg-transparent px-2 text-lg font-bold outline-none"
                 inputMode="numeric"
-                min={1}
+                min={1000}
                 max={999999}
                 placeholder="35000"
                 required
@@ -184,6 +291,12 @@ export function DropPinForm({
               />
             </span>
           </label>
+
+          {rentContext ? (
+            <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
+              {rentContext}
+            </p>
+          ) : null}
 
           <div className="grid grid-cols-2 gap-3">
             <label className="grid gap-2">
@@ -222,10 +335,26 @@ export function DropPinForm({
             </label>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <ToggleButton pressed={furnished} onPressedChange={setFurnished}>
-              Furnished
-            </ToggleButton>
+          <div className="grid gap-2">
+            <span className="text-sm font-bold">Furnishing</span>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                ["furnished", "Furnished"],
+                ["semi", "Semi"],
+                ["unfurnished", "Unfurnished"],
+              ].map(([value, label]) => (
+                <ChoiceButton
+                  key={value}
+                  selected={furnishing === value}
+                  onClick={() => setFurnishing(value as PublicPin["furnishing"])}
+                >
+                  {label}
+                </ChoiceButton>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
             <ToggleButton pressed={gated} onPressedChange={setGated}>
               Gated society
             </ToggleButton>
@@ -267,7 +396,7 @@ export function DropPinForm({
             <span className="text-sm font-bold">Comment</span>
             <textarea
               className="min-h-24 resize-none rounded-md border border-black/10 bg-white p-3 outline-none focus:border-[#16110d]"
-              maxLength={500}
+              maxLength={200}
               placeholder="Optional: maintenance, water, noise, broker story..."
               value={comment}
               onChange={(event) => setComment(event.target.value)}
@@ -299,11 +428,37 @@ export function DropPinForm({
             ) : (
               <Check className="mr-2" size={16} />
             )}
-            Submit pin
+            {isEditMode ? "Save changes" : "Submit pin"}
           </button>
         </footer>
       </form>
     </div>
+  );
+}
+
+function ChoiceButton({
+  children,
+  selected,
+  onClick,
+}: {
+  children: React.ReactNode;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className={cn(
+        "h-11 rounded-md border px-2 text-xs font-bold transition",
+        selected
+          ? "border-[#16110d] bg-[#16110d] text-white"
+          : "border-black/10 bg-white text-[#16110d] hover:bg-black/5",
+      )}
+      type="button"
+      aria-pressed={selected}
+      onClick={onClick}
+    >
+      {children}
+    </button>
   );
 }
 
