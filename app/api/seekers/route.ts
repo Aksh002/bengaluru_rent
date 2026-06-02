@@ -177,7 +177,11 @@ export async function POST(req: NextRequest) {
 
   if (existingSeeker) {
     return NextResponse.json(
-      { error: "You already have an active search. It expires in 30 days." },
+      {
+        error:
+          "You already have an active flat search on this device. It expires automatically in 30 days.",
+        code: "ACTIVE_SEARCH_EXISTS",
+      },
       { status: 409 },
     );
   }

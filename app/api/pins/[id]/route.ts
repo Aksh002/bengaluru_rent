@@ -6,6 +6,7 @@ import {
 import type { Database } from "@/lib/supabase/types";
 import type { PublicPin } from "@/lib/types/pins";
 import { roundCoord } from "@/lib/utils/geo";
+import { moderateComment } from "@/lib/agents/moderation-agent";
 
 export const runtime = "nodejs";
 
@@ -109,6 +110,7 @@ export async function PATCH(
 
   const payload = body as Record<string, unknown>;
   const updates: Database["public"]["Tables"]["pins"]["Update"] = {};
+  let shouldModerateComment = false;
 
   // Validate and collect editable fields
   if ("rent" in payload) {
@@ -175,6 +177,7 @@ export async function PATCH(
     // Reset moderation when comment changes
     updates.comment_approved =
       updates.comment === null ? true : null;
+    shouldModerateComment = updates.comment !== null;
   }
 
   if (Object.keys(updates).length === 0) {
@@ -202,6 +205,13 @@ export async function PATCH(
     );
   }
 
+  const { data: listing } = await serviceSupabase
+    .from("listings")
+    .select("id")
+    .eq("pin_id", id)
+    .eq("is_active", true)
+    .maybeSingle();
+
   const pin: PublicPin = {
     id: updatedPin.id,
     lat: roundCoord(updatedPin.lat),
@@ -217,11 +227,17 @@ export async function PATCH(
     neighbourhood: updatedPin.neighbourhood,
     created_at: updatedPin.created_at,
     report_count: updatedPin.report_count,
-    has_listing: false,
+    has_listing: Boolean(listing),
     comment: updatedPin.comment,
     comment_approved: updatedPin.comment_approved,
     is_owner: true,
   };
+
+  if (shouldModerateComment && updatedPin.comment) {
+    moderateComment(id, updatedPin.comment).catch((err) => {
+      console.error("Edited comment moderation failed:", err);
+    });
+  }
 
   return NextResponse.json({ pin });
 }

@@ -62,6 +62,7 @@ const bengaluruBounds = {
   minLng: 77.38,
   maxLng: 77.86,
 };
+const PIN_SUBMISSION_LIMIT_PER_24H = 10;
 
 function toPublicPin(
   pin: PinSelectRow,
@@ -205,6 +206,12 @@ function parseFurnishing(value: unknown): PublicPin["furnishing"] | null {
   return null;
 }
 
+function parseIntegerParam(value: string | null) {
+  if (!value) return null;
+  const parsed = Number(value);
+  return Number.isInteger(parsed) ? parsed : null;
+}
+
 async function reverseGeocodeNeighbourhood(lat: number, lng: number) {
   const apiKey =
     process.env.GOOGLE_MAPS_GEOCODING_API_KEY ||
@@ -275,7 +282,8 @@ export async function GET(req: NextRequest) {
   let query = supabase
     .from("public_pins")
     .select(selectColumns)
-    .eq("is_hidden", false);
+    .eq("is_hidden", false)
+    .eq("is_suspicious", false);
 
   if (bounds) {
     query = query
@@ -283,6 +291,44 @@ export async function GET(req: NextRequest) {
       .lte("lat", bounds.north)
       .gte("lng", bounds.west)
       .lte("lng", bounds.east);
+  }
+
+  if (req.nextUrl.searchParams.get("available") === "true") {
+    query = query.eq("has_listing", true);
+  }
+
+  const bhk = parseIntegerParam(req.nextUrl.searchParams.get("bhk"));
+  if (bhk !== null && bhk >= 1 && bhk <= 6) {
+    query = query.eq("bhk", bhk);
+  }
+
+  const furnishing = parseFurnishing(req.nextUrl.searchParams.get("furnishing"));
+  if (furnishing) {
+    query = query.eq("furnishing", furnishing);
+  }
+
+  const gated = req.nextUrl.searchParams.get("gated");
+  if (gated === "true" || gated === "false") {
+    query = query.eq("gated", gated === "true");
+  }
+
+  const occupantType = req.nextUrl.searchParams.get("occupant_type");
+  if (
+    occupantType === "family" ||
+    occupantType === "bachelor" ||
+    occupantType === "any"
+  ) {
+    query = query.eq("occupant_type", occupantType);
+  }
+
+  const minRent = parseIntegerParam(req.nextUrl.searchParams.get("min_rent"));
+  if (minRent !== null && minRent >= 0) {
+    query = query.gte("rent", minRent);
+  }
+
+  const maxRent = parseIntegerParam(req.nextUrl.searchParams.get("max_rent"));
+  if (maxRent !== null && maxRent > 0) {
+    query = query.lte("rent", maxRent);
   }
 
   const { data, error } = await query
@@ -450,9 +496,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if ((count ?? 0) >= 3) {
+  if ((count ?? 0) >= PIN_SUBMISSION_LIMIT_PER_24H) {
     return NextResponse.json(
-      { error: "You can add up to 3 pins in 24 hours" },
+      {
+        error: `You can add up to ${PIN_SUBMISSION_LIMIT_PER_24H} pins in 24 hours`,
+        code: "PIN_RATE_LIMIT_REACHED",
+        limit: PIN_SUBMISSION_LIMIT_PER_24H,
+      },
       { status: 429 },
     );
   }
