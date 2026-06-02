@@ -5,10 +5,10 @@ export const runtime = "nodejs";
 export const maxDuration = 300; // 5 minutes max for matching
 
 /**
- * POST /api/agents/match — Called by Vercel Cron nightly.
+ * GET/POST /api/agents/match — Called by Vercel Cron nightly.
  * Protected by CRON_SECRET.
  */
-export async function POST(req: NextRequest) {
+async function handleMatch(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
@@ -27,4 +27,12 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+export async function GET(req: NextRequest) {
+  return handleMatch(req);
+}
+
+export async function POST(req: NextRequest) {
+  return handleMatch(req);
 }

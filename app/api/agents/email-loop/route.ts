@@ -5,11 +5,11 @@ export const runtime = "nodejs";
 export const maxDuration = 120; // 2 minutes max
 
 /**
- * POST /api/agents/email-loop — Called by Vercel Cron every 10 minutes.
+ * GET/POST /api/agents/email-loop — Called by Vercel Cron daily on Hobby.
  * Processes unread match reply emails and extracts intent.
  * Protected by CRON_SECRET.
  */
-export async function POST(req: NextRequest) {
+async function handleEmailLoop(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
@@ -25,4 +25,12 @@ export async function POST(req: NextRequest) {
     console.error("Email intent agent error:", message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+export async function GET(req: NextRequest) {
+  return handleEmailLoop(req);
+}
+
+export async function POST(req: NextRequest) {
+  return handleEmailLoop(req);
 }

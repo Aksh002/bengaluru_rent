@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/agents/email-loop",
-      "schedule": "*/10 * * * *"
+      "schedule": "45 16 * * *"
     }
   ]
 }
