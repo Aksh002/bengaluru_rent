@@ -1,0 +1,251 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "line": "purple", "name": "Purple Line" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [77.5489, 12.9357], [77.5560, 12.9380], [77.5620, 12.9400],
+          [77.5690, 12.9420], [77.5744, 12.9441], [77.5801, 12.9453],
+          [77.5866, 12.9475], [77.5910, 12.9497], [77.5949, 12.9513],
+          [77.5985, 12.9530], [77.6021, 12.9560], [77.6072, 12.9589],
+          [77.6109, 12.9608], [77.6142, 12.9618], [77.6193, 12.9625],
+          [77.6252, 12.9632], [77.6311, 12.9637], [77.6370, 12.9644],
+          [77.6428, 12.9649], [77.6480, 12.9651], [77.6540, 12.9650],
+          [77.6601, 12.9647], [77.6671, 12.9640], [77.6720, 12.9635],
+          [77.6790, 12.9625], [77.6850, 12.9620], [77.6910, 12.9615],
+          [77.6969, 12.9609], [77.7030, 12.9605], [77.7099, 12.9600],
+          [77.7160, 12.9595], [77.7232, 12.9590], [77.7291, 12.9585],
+          [77.7350, 12.9580], [77.7420, 12.9575]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "line": "green", "name": "Green Line" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [77.5337, 13.0863], [77.5380, 13.0780], [77.5410, 13.0700],
+          [77.5434, 13.0620], [77.5450, 13.0540], [77.5462, 13.0460],
+          [77.5480, 13.0380], [77.5500, 13.0300], [77.5530, 13.0220],
+          [77.5565, 13.0138], [77.5590, 13.0050], [77.5600, 12.9970],
+          [77.5620, 12.9880], [77.5650, 12.9790], [77.5685, 12.9710],
+          [77.5710, 12.9630], [77.5730, 12.9560], [77.5760, 12.9475],
+          [77.5790, 12.9400], [77.5806, 12.9340], [77.5820, 12.9271],
+          [77.5835, 12.9205], [77.5850, 12.9133], [77.5862, 12.9060],
+          [77.5870, 12.8990], [77.5880, 12.8920], [77.5890, 12.8850],
+          [77.5900, 12.8780], [77.5913, 12.8710], [77.5925, 12.8640],
+          [77.5938, 12.8565]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Kengeri" },
+      "geometry": { "type": "Point", "coordinates": [77.4890, 12.9130] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Mysore Road" },
+      "geometry": { "type": "Point", "coordinates": [77.5489, 12.9357] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Deepanjali Nagar" },
+      "geometry": { "type": "Point", "coordinates": [77.5560, 12.9380] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Attiguppe" },
+      "geometry": { "type": "Point", "coordinates": [77.5620, 12.9400] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Vijayanagar" },
+      "geometry": { "type": "Point", "coordinates": [77.5690, 12.9420] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Hosahalli" },
+      "geometry": { "type": "Point", "coordinates": [77.5744, 12.9441] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Magadi Road" },
+      "geometry": { "type": "Point", "coordinates": [77.5801, 12.9453] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "City Railway Station" },
+      "geometry": { "type": "Point", "coordinates": [77.5866, 12.9475] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Majestic" },
+      "geometry": { "type": "Point", "coordinates": [77.5949, 12.9513] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Cubbon Park" },
+      "geometry": { "type": "Point", "coordinates": [77.5985, 12.9530] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "MG Road" },
+      "geometry": { "type": "Point", "coordinates": [77.6072, 12.9589] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Trinity" },
+      "geometry": { "type": "Point", "coordinates": [77.6109, 12.9608] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Halasuru" },
+      "geometry": { "type": "Point", "coordinates": [77.6193, 12.9625] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Indiranagar" },
+      "geometry": { "type": "Point", "coordinates": [77.6311, 12.9637] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Swami Vivekananda Road" },
+      "geometry": { "type": "Point", "coordinates": [77.6428, 12.9649] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Baiyappanahalli" },
+      "geometry": { "type": "Point", "coordinates": [77.6540, 12.9650] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "KR Pura" },
+      "geometry": { "type": "Point", "coordinates": [77.6850, 12.9620] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "purple", "name": "Whitefield" },
+      "geometry": { "type": "Point", "coordinates": [77.7420, 12.9575] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Nagasandra" },
+      "geometry": { "type": "Point", "coordinates": [77.5337, 13.0863] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Dasarahalli" },
+      "geometry": { "type": "Point", "coordinates": [77.5380, 13.0780] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Jalahalli" },
+      "geometry": { "type": "Point", "coordinates": [77.5410, 13.0700] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Peenya Industry" },
+      "geometry": { "type": "Point", "coordinates": [77.5434, 13.0620] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Peenya" },
+      "geometry": { "type": "Point", "coordinates": [77.5450, 13.0540] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Goraguntepalya" },
+      "geometry": { "type": "Point", "coordinates": [77.5462, 13.0460] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Yeshwanthpur" },
+      "geometry": { "type": "Point", "coordinates": [77.5500, 13.0300] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Sandal Soap Factory" },
+      "geometry": { "type": "Point", "coordinates": [77.5530, 13.0220] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Mahalakshmi" },
+      "geometry": { "type": "Point", "coordinates": [77.5565, 13.0138] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Rajajinagar" },
+      "geometry": { "type": "Point", "coordinates": [77.5590, 13.0050] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Majestic" },
+      "geometry": { "type": "Point", "coordinates": [77.5650, 12.9790] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Chickpete" },
+      "geometry": { "type": "Point", "coordinates": [77.5685, 12.9710] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "KR Market" },
+      "geometry": { "type": "Point", "coordinates": [77.5730, 12.9560] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "National College" },
+      "geometry": { "type": "Point", "coordinates": [77.5790, 12.9400] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Lalbagh" },
+      "geometry": { "type": "Point", "coordinates": [77.5806, 12.9340] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "South End Circle" },
+      "geometry": { "type": "Point", "coordinates": [77.5820, 12.9271] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Jayanagar" },
+      "geometry": { "type": "Point", "coordinates": [77.5835, 12.9205] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "RV Road" },
+      "geometry": { "type": "Point", "coordinates": [77.5850, 12.9133] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Banashankari" },
+      "geometry": { "type": "Point", "coordinates": [77.5862, 12.9060] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "JP Nagar" },
+      "geometry": { "type": "Point", "coordinates": [77.5870, 12.8990] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Yelachenahalli" },
+      "geometry": { "type": "Point", "coordinates": [77.5880, 12.8920] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Konanakunte Cross" },
+      "geometry": { "type": "Point", "coordinates": [77.5900, 12.8780] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "station", "line": "green", "name": "Silk Institute" },
+      "geometry": { "type": "Point", "coordinates": [77.5938, 12.8565] }
+    }
+  ]
+}
