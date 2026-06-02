@@ -100,17 +100,17 @@ export function AreaStatsOverlay({
   if (stats.length === 0) return null;
 
   return (
-    <div className="pointer-events-auto map-chrome max-w-xs rounded-lg p-3">
-      <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-[#61584e]">
+    <div className="pointer-events-auto command-panel max-w-xs p-3">
+      <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-white/48">
         <BarChart3 size={14} />
         Area rents
       </div>
       <div className="space-y-3">
         {stats.map((stat) => (
           <div key={stat.name}>
-            <p className="text-sm font-semibold leading-tight">
+            <p className="text-sm font-black leading-tight text-white">
               {stat.name}
-              <span className="ml-2 text-xs font-medium text-[#61584e]">
+              <span className="ml-2 text-xs font-semibold text-white/42">
                 {stat.count} pin{stat.count !== 1 ? "s" : ""}
               </span>
             </p>
@@ -120,9 +120,9 @@ export function AreaStatsOverlay({
                 .map(([bhk, med]) => (
                   <span
                     key={bhk}
-                    className="text-xs text-[#61584e]"
+                    className="text-xs text-white/58"
                   >
-                    <span className="font-bold text-[#16110d]">
+                    <span className="font-black text-[#f5a524]">
                       {bhk}BHK
                     </span>{" "}
                     {formatCompact.format(med)}
@@ -133,7 +133,7 @@ export function AreaStatsOverlay({
         ))}
       </div>
       <button
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-[#f7f2e8] px-3 py-2 text-xs font-bold uppercase tracking-wider text-[#61584e] transition hover:bg-[#ebdcc0] hover:text-[#16110d]"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-black uppercase tracking-wider text-white/64 transition hover:bg-white/10 hover:text-white"
         type="button"
         onClick={() => {
           // Open watchlist form at map center

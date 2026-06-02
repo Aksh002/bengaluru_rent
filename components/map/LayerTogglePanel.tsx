@@ -26,10 +26,10 @@ export function LayerTogglePanel() {
       <button
         aria-label="Toggle map layers"
         className={cn(
-          "relative grid h-12 w-12 place-items-center rounded-full shadow-lg transition hover:scale-105",
+          "relative grid h-11 w-11 place-items-center rounded-md border border-white/10 shadow-lg transition hover:-translate-y-0.5",
           open
-            ? "bg-[#16110d] text-white"
-            : "bg-white text-[#16110d]",
+            ? "bg-[#f5a524] text-[#15110a]"
+            : "bg-white/[0.06] text-white/72 hover:bg-white/10 hover:text-white",
         )}
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -44,8 +44,8 @@ export function LayerTogglePanel() {
 
       {/* Panel */}
       {open ? (
-        <div className="map-chrome absolute right-0 top-14 w-56 rounded-lg p-3 shadow-xl">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-[#61584e]">
+        <div className="command-panel absolute right-0 top-14 w-56 p-3">
+          <p className="mb-3 text-xs font-black uppercase tracking-[0.12em] text-white/48">
             Map Layers
           </p>
 
@@ -88,15 +88,15 @@ function LayerRow({
       className={cn(
         "mb-1.5 flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium transition",
         active
-          ? "bg-[#16110d] text-white"
-          : "text-[#16110d] hover:bg-black/5",
+          ? "bg-white/12 text-white"
+          : "text-white/66 hover:bg-white/[0.07] hover:text-white",
       )}
       type="button"
       onClick={onToggle}
     >
       <span
         className="grid h-7 w-7 shrink-0 place-items-center rounded-md"
-        style={{ backgroundColor: active ? color : `${color}22` }}
+        style={{ backgroundColor: active ? color : `${color}33` }}
       >
         <span style={{ color: active ? "white" : color }}>{icon}</span>
       </span>
