@@ -201,6 +201,33 @@ export type Database = {
           },
         ];
       };
+      pin_comments: {
+        Row: {
+          id: string;
+          pin_id: string;
+          session_id: string;
+          body: string;
+          comment_approved: boolean | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          pin_id: string;
+          session_id: string;
+          body: string;
+          comment_approved?: boolean | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["pin_comments"]["Row"]>;
+        Relationships: [
+          {
+            foreignKeyName: "pin_comments_pin_id_fkey";
+            columns: ["pin_id"];
+            referencedRelation: "pins";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       watchlist: {
         Row: {
           id: string;

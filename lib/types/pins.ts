@@ -24,6 +24,14 @@ export type PublicPin = {
   comment_approved: boolean | null;
 };
 
+export type PinComment = {
+  id: string;
+  pin_id: string;
+  body: string;
+  comment_approved: boolean | null;
+  created_at: string;
+};
+
 export type AreaRentStat = {
   name: string;
   count: number;
@@ -31,4 +39,24 @@ export type AreaRentStat = {
     bhk: number;
     median_rent: number;
   }>;
+};
+
+export type PinFilters = {
+  availableOnly: boolean;
+  bhk: number | null;
+  furnishing: Furnishing | "any";
+  gated: boolean | null;
+  occupantType: OccupantType | "all";
+  minRent: number | null;
+  maxRent: number | null;
+};
+
+export const defaultPinFilters: PinFilters = {
+  availableOnly: false,
+  bhk: null,
+  furnishing: "any",
+  gated: null,
+  occupantType: "all",
+  minRent: null,
+  maxRent: null,
 };

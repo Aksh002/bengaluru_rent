@@ -57,7 +57,7 @@ export async function generateMetadata({
   if (!name) return { title: "Not Found" };
 
   return {
-    title: `Rent prices in ${name}, Bengaluru 2024 | bengaluru.rent`,
+    title: `Rent prices in ${name}, Bengaluru | bengaluru.rent`,
     description: `Check the latest average rent prices for 1BHK, 2BHK, and 3BHK flats in ${name}, Bengaluru. Real data from real tenants.`,
   };
 }

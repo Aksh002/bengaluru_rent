@@ -138,7 +138,28 @@ export async function runMatchingAgent(): Promise<AgentRunResult> {
         (m: { listing_id: string }) => m.listing_id,
       ),
     );
-    const newCandidates = candidates.filter((c) => !matchedIds.has(c.id));
+    const newCandidates = candidates.filter((c) => {
+      if (matchedIds.has(c.id)) return false;
+      const effectiveRent = getCandidateRent(c);
+      if (effectiveRent < seeker.budget_min || effectiveRent > seeker.budget_max) {
+        return false;
+      }
+      if (seeker.looking_for !== "any" && c.listing_type !== seeker.looking_for) {
+        return false;
+      }
+      if (seeker.bhk_pref !== null && c.bhk !== seeker.bhk_pref) {
+        return false;
+      }
+      if (
+        seeker.gender &&
+        seeker.gender !== "other" &&
+        c.gender_pref !== "any" &&
+        c.gender_pref !== seeker.gender
+      ) {
+        return false;
+      }
+      return true;
+    });
     if (newCandidates.length === 0) continue;
 
     // 3. Score via Claude
@@ -166,7 +187,7 @@ Format: [{"listing_id": "...", "score": 0.85, "reason": "brief reason"}]`,
               candidates: newCandidates.map((c) => ({
                 id: c.id,
                 listing_type: c.listing_type,
-                rent: c.rent,
+                rent: getCandidateRent(c),
                 bhk: c.bhk,
                 furnished: c.furnished,
                 neighbourhood: c.neighbourhood ?? "Unknown",
@@ -233,6 +254,7 @@ Format: [{"listing_id": "...", "score": 0.85, "reason": "brief reason"}]`,
 
         // Send emails via Resend
         const resendKey = process.env.RESEND_API_KEY;
+        const replyTo = process.env.MATCH_REPLY_TO_EMAIL || "loop@bengaluru.rent";
         if (resendKey && seekerEmail && ownerEmail) {
           try {
             const { Resend } = await import("resend");
@@ -241,6 +263,7 @@ Format: [{"listing_id": "...", "score": 0.85, "reason": "brief reason"}]`,
             await resend.emails.send({
               from: "matches@bengaluru.rent",
               to: seekerEmail as string,
+              replyTo,
               subject: `🏠 Match found: ${candidate.bhk}BHK in ${candidate.neighbourhood || "Bengaluru"}`,
               html: buildSeekerEmail(
                 candidate,
@@ -253,6 +276,7 @@ Format: [{"listing_id": "...", "score": 0.85, "reason": "brief reason"}]`,
             await resend.emails.send({
               from: "matches@bengaluru.rent",
               to: ownerEmail as string,
+              replyTo,
               subject: "🔍 Someone's looking for your flat",
               html: buildOwnerEmail(
                 seeker,
@@ -310,6 +334,12 @@ function buildResult(
   };
 }
 
+function getCandidateRent(candidate: CandidateRow) {
+  return candidate.listing_type === "room" && candidate.rent_per_room
+    ? candidate.rent_per_room
+    : candidate.rent;
+}
+
 async function logRun(
   supabase: ReturnType<typeof createServiceSupabaseClient>,
   result: AgentRunResult,
@@ -332,7 +362,7 @@ function buildSeekerEmail(
   ownerEmail: string,
   ownerPhone: string | null,
 ): string {
-  const rent = candidate.rent.toLocaleString("en-IN");
+  const rent = getCandidateRent(candidate).toLocaleString("en-IN");
   return `
     <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; padding: 24px;">
       <h2 style="margin: 0 0 8px 0;">🏠 Match found on bengaluru.rent</h2>
