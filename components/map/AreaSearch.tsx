@@ -47,17 +47,17 @@ export function AreaSearch() {
   }
 
   return (
-    <div className="pointer-events-auto flex w-full min-w-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] p-2">
-      <Search className="shrink-0 text-white/50" size={18} />
+    <div className="pointer-events-auto flex w-full min-w-0 items-center gap-1.5 rounded-xl p-1 sm:gap-2 sm:p-2">
+      <Search className="h-4 w-4 shrink-0 text-[#334155]/55 sm:h-[18px] sm:w-[18px]" />
       <input
         ref={inputRef}
         aria-label="Search Bengaluru area"
-        className="min-w-0 flex-1 bg-transparent text-sm font-black text-white outline-none placeholder:text-white/35"
+        className="min-w-0 flex-1 bg-transparent text-xs font-medium text-[#111827] outline-none placeholder:text-[#64748b]/70 sm:text-sm"
         placeholder="Search Koramangala, Indiranagar..."
         type="search"
       />
       <button
-        className="shrink-0 rounded-md border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-white/62 transition hover:bg-white/10 hover:text-white"
+        className="shrink-0 rounded-md px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#334155] transition hover:text-[#111827] sm:px-3 sm:py-2 sm:text-xs"
         type="button"
         onClick={panHome}
       >

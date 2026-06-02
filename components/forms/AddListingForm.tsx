@@ -175,9 +175,10 @@ export function AddListingForm({
               <input
                 className="h-12 rounded-md border border-black/10 bg-white px-3 font-bold outline-none focus:border-[#16110d]"
                 inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="15000"
                 required
-                type="number"
+                type="text"
                 value={rentPerRoom}
                 onChange={(e) => setRentPerRoom(e.target.value)}
               />

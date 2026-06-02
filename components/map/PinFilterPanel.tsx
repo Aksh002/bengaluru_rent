@@ -28,7 +28,7 @@ export function PinFilterPanel({
   ].filter(Boolean).length;
 
   return (
-    <section className="command-panel absolute right-3 top-[7.2rem] z-20 w-[min(360px,calc(100vw-24px))] p-4 sm:right-5">
+    <section className="command-panel absolute right-3 top-[10.5rem] z-20 w-[min(360px,calc(100vw-24px))] p-4 sm:right-5 sm:top-[7.2rem]">
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
           <p className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.14em] text-white">
@@ -211,8 +211,9 @@ function RentInput({
       <input
         className="h-10 min-w-0 rounded-md border border-white/10 bg-white/[0.06] px-3 text-sm font-black text-white outline-none placeholder:text-white/24 focus:border-[#f5a524]"
         inputMode="numeric"
+        pattern="[0-9]*"
         placeholder="₹"
-        type="number"
+        type="text"
         value={value ?? ""}
         onChange={(event) => {
           const next = Number(event.target.value);

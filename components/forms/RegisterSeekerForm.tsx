@@ -228,8 +228,9 @@ export function RegisterSeekerForm({
                 <input
                   className="h-12 min-w-0 flex-1 bg-transparent px-2 font-bold outline-none"
                   inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="5000"
-                  type="number"
+                  type="text"
                   value={budgetMin}
                   onChange={(e) => setBudgetMin(e.target.value)}
                 />
@@ -242,9 +243,10 @@ export function RegisterSeekerForm({
                 <input
                   className="h-12 min-w-0 flex-1 bg-transparent px-2 font-bold outline-none"
                   inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="30000"
                   required
-                  type="number"
+                  type="text"
                   value={budgetMax}
                   onChange={(e) => setBudgetMax(e.target.value)}
                 />

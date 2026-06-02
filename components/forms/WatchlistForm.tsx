@@ -134,8 +134,10 @@ export function WatchlistForm({
             </label>
             <input
               className="w-full rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2 text-sm text-white outline-none placeholder:text-white/30"
+              inputMode="numeric"
+              pattern="[0-9]*"
               placeholder="e.g. 40000"
-              type="number"
+              type="text"
               value={maxRent}
               onChange={(e) => setMaxRent(e.target.value)}
             />

@@ -281,11 +281,10 @@ export function DropPinForm({
               <input
                 className="h-12 min-w-0 flex-1 bg-transparent px-2 text-lg font-bold outline-none"
                 inputMode="numeric"
-                min={1000}
-                max={999999}
+                pattern="[0-9]*"
                 placeholder="35000"
                 required
-                type="number"
+                type="text"
                 value={rent}
                 onChange={(event) => setRent(event.target.value)}
               />
@@ -325,10 +324,9 @@ export function DropPinForm({
               <input
                 className="h-12 rounded-md border border-black/10 bg-white px-3 font-bold outline-none focus:border-[#16110d]"
                 inputMode="numeric"
-                max={24}
-                min={0}
+                pattern="[0-9]*"
                 placeholder="months"
-                type="number"
+                type="text"
                 value={depositMonths}
                 onChange={(event) => setDepositMonths(event.target.value)}
               />

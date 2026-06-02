@@ -10,10 +10,10 @@
   --amber: #f5a524;
   --blue: #3f7cff;
   --green: #26c281;
-  --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia,
-    serif;
-  --font-body: "Newsreader", "Source Serif 4", "Iowan Old Style", Georgia,
-    serif;
+  --font-display: "Aptos Display", "Segoe UI Variable Display", "Segoe UI",
+    "Helvetica Neue", sans-serif;
+  --font-body: "Aptos", "Segoe UI Variable Text", "Segoe UI",
+    "Helvetica Neue", sans-serif;
 }
 
 * {
@@ -29,12 +29,27 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), ui-serif, Georgia, serif;
+  font-family: var(--font-body);
+  font-feature-settings:
+    "cv02" 1,
+    "cv03" 1,
+    "cv04" 1;
+  letter-spacing: 0;
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
+}
+
+h1,
+h2,
+h3,
+.font-\[var\(--font-display\)\] {
+  font-family: var(--font-display);
+  letter-spacing: 0;
 }
 
 .map-chrome {
@@ -54,6 +69,15 @@ input {
     0 18px 55px rgba(0, 0, 0, 0.38),
     inset 0 1px 0 rgba(255, 255, 255, 0.09);
   backdrop-filter: blur(20px);
+}
+
+.light-glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(18px) saturate(1.28);
 }
 
 .control-icon {
@@ -217,6 +241,27 @@ form.map-chrome > div {
   color: inherit;
 }
 
+.map-chrome label > span,
+.map-chrome input,
+.map-chrome select,
+.map-chrome textarea {
+  font-weight: 500 !important;
+}
+
+.map-chrome p {
+  font-weight: 450 !important;
+}
+
+.map-chrome header p:first-child,
+.map-chrome h2,
+.map-chrome h3 {
+  font-weight: 700 !important;
+}
+
+.map-chrome button {
+  font-weight: 650 !important;
+}
+
 .map-chrome .text-\[\#61584e\],
 .map-chrome .text-\[\#8c8378\] {
   color: rgba(255, 255, 255, 0.52) !important;
@@ -243,6 +288,26 @@ form.map-chrome > div {
 
 .pin-dossier {
   animation: pin-card-in 230ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@media (max-width: 640px) {
+  .map-chrome .grid-cols-2,
+  .map-chrome .grid-cols-3 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .map-chrome header,
+  .map-chrome footer,
+  .map-chrome > div {
+    padding: 0.9rem !important;
+  }
+
+  .map-chrome input,
+  .map-chrome select,
+  .map-chrome textarea {
+    min-height: 2.5rem;
+    font-size: 0.9rem;
+  }
 }
 
 @keyframes pin-backdrop-in {

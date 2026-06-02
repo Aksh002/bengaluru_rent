@@ -133,8 +133,11 @@ function RentMarker({ pin }: { pin: PublicPin }) {
 
   return (
     <button
-      className="relative grid h-[30px] min-w-[78px] grid-cols-[auto_auto] items-center gap-1.5 rounded-md border border-white/20 px-2 text-xs font-black text-white shadow-[0_12px_28px_rgba(0,0,0,0.34)] transition hover:-translate-y-0.5"
-      style={{ background: color }}
+      className="relative grid h-[30px] min-w-[78px] grid-cols-[auto_auto] items-center gap-1.5 rounded-md border border-white/28 px-2 text-xs font-extrabold text-white transition hover:-translate-y-0.5"
+      style={{
+        background: color,
+        boxShadow: `0 0 0 1px ${color}55, 0 0 20px ${color}cc, 0 16px 34px rgba(0,0,0,0.36)`,
+      }}
       type="button"
     >
       <span>{pin.bhk}BHK</span>
@@ -418,29 +421,29 @@ function MapShell() {
       </Map>
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 p-3 sm:p-5">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 sm:gap-3">
           <GlassSurface
             width="100%"
             height="auto"
             borderRadius={28}
             borderWidth={0.09}
-            backgroundOpacity={0.32}
-            brightness={38}
-            opacity={0.9}
+            backgroundOpacity={0.56}
+            brightness={100}
+            opacity={0.64}
             blur={10}
-            saturation={1.7}
-            className="pointer-events-auto min-h-[86px] px-1 py-1"
+            saturation={1.28}
+            className="pointer-events-auto min-h-[72px] px-1 py-1 sm:min-h-[86px]"
             style={{
-              background:
-                "linear-gradient(135deg, rgba(8, 23, 36, 0.78), rgba(16, 19, 37, 0.72))",
+              background: "rgba(255, 255, 255, 0.66)",
+              border: "1px solid rgba(255, 255, 255, 0.42)",
             }}
           >
-            <div className="grid w-full gap-3 px-2 py-2 lg:grid-cols-[220px_1fr_auto] lg:items-center">
+            <div className="grid w-full gap-2 px-1.5 py-1.5 sm:gap-3 sm:px-2 sm:py-2 lg:grid-cols-[220px_1fr_auto] lg:items-center">
               <div>
-                <h1 className="font-[var(--font-display)] text-2xl font-black leading-none text-white sm:text-3xl">
+                <h1 className="font-[var(--font-display)] text-xl font-bold leading-none text-[#111827] sm:text-3xl sm:font-extrabold">
                   bengaluru.rent
                 </h1>
-                <p className="mt-1 text-[11px] font-black uppercase tracking-[0.16em] text-white/42">
+                <p className="mt-1 hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-[#334155]/65 sm:block">
                   Anonymous rent radar
                 </p>
               </div>
@@ -448,10 +451,10 @@ function MapShell() {
               <div className="flex items-center justify-between gap-2 lg:justify-end">
                 <button
                   className={cn(
-                    "inline-flex h-11 items-center gap-2 rounded-md border px-3 text-xs font-black uppercase tracking-[0.08em] transition",
+                    "inline-flex h-9 items-center gap-1.5 rounded-md border border-transparent bg-transparent px-2 text-[10px] font-semibold uppercase tracking-[0.08em] transition sm:h-11 sm:gap-2 sm:px-3 sm:text-xs",
                     filters.availableOnly
-                      ? "border-[#26c281] bg-[#26c281] text-[#07140d]"
-                      : "border-white/10 bg-white/[0.06] text-white/72 hover:bg-white/10 hover:text-white",
+                      ? "font-bold text-[#047857] sm:font-extrabold"
+                      : "text-[#1f2937]/78 hover:text-[#111827]",
                   )}
                   type="button"
                   onClick={() =>
@@ -466,8 +469,8 @@ function MapShell() {
                 </button>
                 <button
                   className={cn(
-                    "relative inline-flex h-11 items-center gap-2 rounded-md border border-white/10 bg-white/[0.06] px-3 text-xs font-black uppercase tracking-[0.08em] text-white/72 transition hover:bg-white/10 hover:text-white",
-                    showFilters && "bg-white/12 text-white",
+                    "relative inline-flex h-9 items-center gap-1.5 rounded-md border border-transparent bg-transparent px-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#1f2937]/78 transition hover:text-[#111827] sm:h-11 sm:gap-2 sm:px-3 sm:text-xs",
+                    showFilters && "text-[#111827]",
                   )}
                   type="button"
                   onClick={() => setShowFilters((open) => !open)}
@@ -480,7 +483,7 @@ function MapShell() {
                     </span>
                   ) : null}
                 </button>
-                <LayerTogglePanel />
+                <LayerTogglePanel tone="light" />
               </div>
             </div>
           </GlassSurface>
@@ -522,15 +525,17 @@ function MapShell() {
         </div>
       </div>
 
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex items-end justify-between gap-3 p-3 sm:p-5">
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex items-end justify-between gap-2 p-2 sm:gap-3 sm:p-5">
         <div className="flex flex-col gap-3">
           <NdviLegend visible={showGreenCover} />
-          <AreaStatsOverlay
-            pins={pins}
-            bounds={camera.bounds}
-            serverStats={areaStats}
-          />
-          <div className="command-panel max-w-[78vw] rounded-lg px-4 py-3 text-sm font-black text-white/68">
+          <div className="hidden sm:block">
+            <AreaStatsOverlay
+              pins={pins}
+              bounds={camera.bounds}
+              serverStats={areaStats}
+            />
+          </div>
+          <div className="light-glass-panel max-w-[58vw] rounded-lg px-3 py-2 text-xs font-medium text-[#334155]/78 sm:max-w-[78vw] sm:px-4 sm:py-3 sm:text-sm sm:font-semibold">
             {isLoading
               ? "Loading community rent pins..."
               : isError
@@ -548,14 +553,14 @@ function MapShell() {
         <div className="pointer-events-auto flex flex-col gap-2">
           <button
             aria-label="Recenter Bengaluru"
-            className="grid h-12 w-12 place-items-center rounded-full bg-white text-[#16110d] shadow-lg transition hover:scale-105"
+            className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#16110d] shadow-lg transition hover:scale-105 sm:h-12 sm:w-12"
             type="button"
             onClick={locateBengaluru}
           >
-            <LocateFixed size={20} />
+            <LocateFixed className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
           <button
-            className="flex h-12 items-center rounded-full bg-[#16110d] px-4 text-sm font-bold text-white shadow-lg transition hover:scale-105"
+            className="flex h-10 items-center rounded-full bg-[#16110d] px-3 text-xs font-semibold text-white shadow-lg transition hover:scale-105 sm:h-12 sm:px-4 sm:text-sm sm:font-bold"
             type="button"
             onClick={() => {
               setActivePin(null);
@@ -566,10 +571,14 @@ function MapShell() {
               showToast("Click the home location to drop an anonymous rent pin.");
             }}
           >
-            <Plus className="mr-2" size={18} />
+            <Plus className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-[18px] sm:w-[18px]" />
             Drop a Pin
           </button>
         </div>
+      </div>
+
+      <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 hidden -translate-x-1/2 rounded-full border border-white/15 bg-[#101320]/82 px-4 py-2 text-xs font-medium text-white/62 shadow-[0_16px_34px_rgba(0,0,0,0.24)] backdrop-blur md:block">
+        Made by: Akshit Gangwar
       </div>
 
       {toast ? (
@@ -674,7 +683,7 @@ function CommandButton({
   return (
     <button
       className={cn(
-        "inline-flex h-11 items-center gap-2 rounded-full border px-4 text-sm font-black text-white shadow-[0_12px_28px_rgba(0,0,0,0.26)] backdrop-blur transition hover:-translate-y-0.5",
+        "inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold text-white shadow-[0_12px_28px_rgba(0,0,0,0.26)] backdrop-blur transition hover:-translate-y-0.5 sm:h-11 sm:gap-2 sm:px-4 sm:text-sm sm:font-black",
         active
           ? "border-[#f5a524] bg-[#f5a524] text-[#15110a]"
           : "border-white/12 bg-[#101320]/88 hover:bg-[#181b2e]",
