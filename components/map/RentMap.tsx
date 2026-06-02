@@ -13,11 +13,18 @@ import Supercluster, {
   ClusterFeature,
   PointFeature,
 } from "supercluster";
-import { LocateFixed, Plus } from "lucide-react";
+import { LocateFixed, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { AddListingForm } from "@/components/forms/AddListingForm";
 import { DropPinForm } from "@/components/forms/DropPinForm";
+import { RegisterSeekerForm } from "@/components/forms/RegisterSeekerForm";
+import { WatchlistForm } from "@/components/forms/WatchlistForm";
 import { AreaSearch } from "@/components/map/AreaSearch";
+import { AreaStatsOverlay } from "@/components/map/AreaStatsOverlay";
+import { LayerTogglePanel } from "@/components/map/LayerTogglePanel";
+import { MetroOverlay } from "@/components/map/MetroOverlay";
 import { PinInfoPopup } from "@/components/map/PinInfoPopup";
+import { NdviLegend, SentinelOverlay } from "@/components/map/SentinelOverlay";
 import { usePins } from "@/hooks/usePins";
 import type { PublicPin } from "@/lib/types/pins";
 import { cn } from "@/lib/utils/cn";
@@ -39,6 +46,38 @@ const defaultBounds = {
   east: 77.86,
   north: 13.18,
 };
+
+type Bounds = CameraState["bounds"];
+
+function roundBounds(bounds: Bounds): Bounds {
+  return {
+    south: Number(bounds.south.toFixed(3)),
+    west: Number(bounds.west.toFixed(3)),
+    north: Number(bounds.north.toFixed(3)),
+    east: Number(bounds.east.toFixed(3)),
+  };
+}
+
+function expandBounds(bounds: Bounds, paddingRatio = 0.45): Bounds {
+  const latPadding = (bounds.north - bounds.south) * paddingRatio;
+  const lngPadding = (bounds.east - bounds.west) * paddingRatio;
+
+  return roundBounds({
+    south: bounds.south - latPadding,
+    west: bounds.west - lngPadding,
+    north: bounds.north + latPadding,
+    east: bounds.east + lngPadding,
+  });
+}
+
+function containsBounds(outer: Bounds, inner: Bounds) {
+  return (
+    outer.south <= inner.south &&
+    outer.north >= inner.north &&
+    outer.west <= inner.west &&
+    outer.east >= inner.east
+  );
+}
 
 const pinPalette = {
   one: "#246bfe",
@@ -156,23 +195,51 @@ function PinLayer({ pins, camera }: { pins: PublicPin[]; camera: CameraState }) 
 }
 
 function MapShell() {
-  const { data: pins = [], isError, isLoading } = usePins();
+  const [camera, setCamera] = useState<CameraState>({
+    bounds: defaultBounds,
+    zoom: 12,
+  });
+  const [queryBounds, setQueryBounds] = useState<Bounds>(() =>
+    expandBounds(defaultBounds),
+  );
+
+  const { data, isError, isLoading } = usePins(queryBounds);
+  const pins = data?.pins ?? [];
+  const areaStats = data?.areaStats ?? [];
   const isPinPlacementMode = useMapStore((state) => state.isPinPlacementMode);
   const setPinPlacementMode = useMapStore((state) => state.setPinPlacementMode);
   const draftPinLocation = useMapStore((state) => state.draftPinLocation);
   const setDraftPinLocation = useMapStore((state) => state.setDraftPinLocation);
   const setActivePin = useMapStore((state) => state.setActivePin);
-  const [camera, setCamera] = useState<CameraState>({
-    bounds: defaultBounds,
-    zoom: 12,
-  });
+
+  const editingPin = useMapStore((state) => state.editingPin);
+  const setEditingPin = useMapStore((state) => state.setEditingPin);
+
+  const isSeekerMode = useMapStore((state) => state.isSeekerMode);
+  const setSeekerMode = useMapStore((state) => state.setSeekerMode);
+  const seekerTargetLocation = useMapStore((state) => state.seekerTargetLocation);
+  const setSeekerTargetLocation = useMapStore((state) => state.setSeekerTargetLocation);
+  const listingForPin = useMapStore((state) => state.listingForPin);
+  const setListingForPin = useMapStore((state) => state.setListingForPin);
+
+  const showMetroLayer = useMapStore((state) => state.showMetroLayer);
+  const showGreenCover = useMapStore((state) => state.showGreenCover);
+
+  const watchlistTargetLocation = useMapStore((state) => state.watchlistTargetLocation);
+  const setWatchlistTargetLocation = useMapStore((state) => state.setWatchlistTargetLocation);
+
   const map = useMap("rent-map");
 
   function handleCameraChanged(event: MapCameraChangedEvent) {
+    const nextBounds = event.detail.bounds || defaultBounds;
     setCamera({
-      bounds: event.detail.bounds || defaultBounds,
+      bounds: nextBounds,
       zoom: event.detail.zoom,
     });
+
+    if (!containsBounds(queryBounds, nextBounds)) {
+      setQueryBounds(expandBounds(nextBounds));
+    }
   }
 
   function locateBengaluru() {
@@ -181,16 +248,25 @@ function MapShell() {
   }
 
   function handleMapClick(event: MapMouseEvent) {
-    if (!isPinPlacementMode || !event.detail.latLng) return;
-    setDraftPinLocation(event.detail.latLng);
-    setPinPlacementMode(false);
+    if (!event.detail.latLng) return;
+
+    if (isPinPlacementMode) {
+      setDraftPinLocation(event.detail.latLng);
+      setPinPlacementMode(false);
+      return;
+    }
+
+    if (isSeekerMode) {
+      setSeekerTargetLocation(event.detail.latLng);
+      setSeekerMode(false);
+    }
   }
 
   return (
     <div
       className={cn(
         "relative h-dvh w-full overflow-hidden bg-[#d8cfc1]",
-        isPinPlacementMode && "cursor-crosshair",
+        (isPinPlacementMode || isSeekerMode) && "cursor-crosshair",
       )}
     >
       <Map
@@ -219,8 +295,11 @@ function MapShell() {
             />
           </AdvancedMarker>
         ) : null}
+        <MetroOverlay visible={showMetroLayer} />
+        <SentinelOverlay visible={showGreenCover} />
       </Map>
 
+      {/* Top bar: logo + search */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 p-3 sm:p-5">
         <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-start">
           <div className="map-chrome rounded-lg px-4 py-3">
@@ -232,20 +311,37 @@ function MapShell() {
             </p>
           </div>
           <AreaSearch />
+          <div className="pointer-events-auto ml-auto">
+            <LayerTogglePanel />
+          </div>
         </div>
       </div>
 
+      {/* Bottom bar: status + action buttons */}
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex items-end justify-between gap-3 p-3 sm:p-5">
-        <div className="map-chrome max-w-[72vw] rounded-lg px-4 py-3 text-sm font-medium text-[#61584e]">
-          {isLoading
-            ? "Loading community rent pins..."
-            : isError
-              ? "Pins could not load. Check Supabase env vars."
-              : isPinPlacementMode
-                ? "Tap the map where the home is"
-                : `${pins.length.toLocaleString("en-IN")} rent pins visible`}
+        {/* Left side: area stats + status */}
+        <div className="flex flex-col gap-3">
+          <NdviLegend visible={showGreenCover} />
+          <AreaStatsOverlay
+            pins={pins}
+            bounds={camera.bounds}
+            serverStats={areaStats}
+          />
+          <div className="map-chrome max-w-[72vw] rounded-lg px-4 py-3 text-sm font-medium text-[#61584e]">
+            {isLoading
+              ? "Loading community rent pins..."
+              : isError
+                ? "Pins could not load. Check Supabase env vars."
+                : isPinPlacementMode
+                  ? "Tap the map where the home is"
+                  : isSeekerMode
+                    ? "Tap where you want to live"
+                    : `${pins.length.toLocaleString("en-IN")} rent pins visible`}
+          </div>
         </div>
-        <div className="pointer-events-auto flex gap-2">
+
+        {/* Right side: action buttons */}
+        <div className="pointer-events-auto flex flex-col gap-2">
           <button
             aria-label="Recenter Bengaluru"
             className="grid h-12 w-12 place-items-center rounded-full bg-white text-[#16110d] shadow-lg transition hover:scale-105"
@@ -253,6 +349,17 @@ function MapShell() {
             onClick={locateBengaluru}
           >
             <LocateFixed size={20} />
+          </button>
+          <button
+            className="flex h-12 items-center rounded-full bg-white px-4 text-sm font-bold text-[#16110d] shadow-lg transition hover:scale-105"
+            type="button"
+            onClick={() => {
+              setActivePin(null);
+              setSeekerMode(true);
+            }}
+          >
+            <Search className="mr-2" size={18} />
+            Find a flat
           </button>
           <button
             className="flex h-12 items-center rounded-full bg-[#16110d] px-4 text-sm font-bold text-white shadow-lg transition hover:scale-105"
@@ -269,9 +376,11 @@ function MapShell() {
         </div>
       </div>
 
+      {/* Drop Pin Form — new pin mode */}
       {draftPinLocation ? (
         <DropPinForm
           location={draftPinLocation}
+          nearbyPins={pins}
           onClose={() => {
             setDraftPinLocation(null);
             setPinPlacementMode(false);
@@ -281,6 +390,49 @@ function MapShell() {
             setActivePin(pin);
             map?.panTo({ lat: pin.lat, lng: pin.lng });
             map?.setZoom(16);
+          }}
+        />
+      ) : null}
+
+      {/* Drop Pin Form — edit mode */}
+      {editingPin ? (
+        <DropPinForm
+          editPin={editingPin}
+          nearbyPins={pins}
+          onClose={() => setEditingPin(null)}
+          onCreated={(pin) => {
+            setEditingPin(null);
+            setActivePin(pin);
+          }}
+        />
+      ) : null}
+
+      {/* Add Listing Form */}
+      {listingForPin ? (
+        <AddListingForm
+          pin={listingForPin}
+          onClose={() => setListingForPin(null)}
+          onCreated={() => {
+            setListingForPin(null);
+          }}
+        />
+      ) : null}
+
+      {/* Watchlist Form */}
+      {watchlistTargetLocation ? (
+        <WatchlistForm
+          location={watchlistTargetLocation}
+          onClose={() => setWatchlistTargetLocation(null)}
+        />
+      ) : null}
+
+      {/* Register Seeker Form */}
+      {seekerTargetLocation ? (
+        <RegisterSeekerForm
+          location={seekerTargetLocation}
+          onClose={() => {
+            setSeekerTargetLocation(null);
+            setSeekerMode(false);
           }}
         />
       ) : null}
