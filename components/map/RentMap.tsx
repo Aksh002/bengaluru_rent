@@ -13,8 +13,18 @@ import Supercluster, {
   ClusterFeature,
   PointFeature,
 } from "supercluster";
-import { LocateFixed, Plus, Search } from "lucide-react";
+import {
+  BarChart3,
+  BriefcaseBusiness,
+  Home,
+  LocateFixed,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  Star,
+} from "lucide-react";
 import { useMemo, useState } from "react";
+import GlassSurface from "@/components/GlassSurface";
 import { AddListingForm } from "@/components/forms/AddListingForm";
 import { DropPinForm } from "@/components/forms/DropPinForm";
 import { RegisterSeekerForm } from "@/components/forms/RegisterSeekerForm";
@@ -22,11 +32,13 @@ import { WatchlistForm } from "@/components/forms/WatchlistForm";
 import { AreaSearch } from "@/components/map/AreaSearch";
 import { AreaStatsOverlay } from "@/components/map/AreaStatsOverlay";
 import { LayerTogglePanel } from "@/components/map/LayerTogglePanel";
+import { LiveStatsPanel } from "@/components/map/LiveStatsPanel";
 import { MetroOverlay } from "@/components/map/MetroOverlay";
 import { PinInfoPopup } from "@/components/map/PinInfoPopup";
+import { PinFilterPanel } from "@/components/map/PinFilterPanel";
 import { NdviLegend, SentinelOverlay } from "@/components/map/SentinelOverlay";
 import { usePins } from "@/hooks/usePins";
-import type { PublicPin } from "@/lib/types/pins";
+import { defaultPinFilters, type PinFilters, type PublicPin } from "@/lib/types/pins";
 import { cn } from "@/lib/utils/cn";
 import { BENGALURU_CENTER } from "@/lib/utils/geo";
 import { useMapStore } from "@/store/map-store";
@@ -86,6 +98,8 @@ const pinPalette = {
   four: "#e55336",
 };
 
+const CLUSTER_DISABLE_ZOOM = 16;
+
 function colorForBhk(bhk: number) {
   if (bhk <= 1) return pinPalette.one;
   if (bhk === 2) return pinPalette.two;
@@ -96,6 +110,76 @@ function colorForBhk(bhk: number) {
 function formatCompactRent(rent: number) {
   if (rent >= 100000) return `${Math.round(rent / 100000)}L`;
   return `${Math.round(rent / 1000)}k`;
+}
+
+function activeFilterCount(filters: PinFilters) {
+  return [
+    filters.availableOnly,
+    filters.bhk,
+    filters.furnishing !== "any",
+    filters.gated !== null,
+    filters.occupantType !== "all",
+    filters.minRent,
+    filters.maxRent,
+  ].filter(Boolean).length;
+}
+
+function RentMarker({ pin }: { pin: PublicPin }) {
+  const color = colorForBhk(pin.bhk);
+  const hasRating =
+    pin.rating_avg !== null &&
+    pin.rating_avg !== undefined &&
+    (pin.rating_count ?? 0) > 0;
+
+  return (
+    <button
+      className="relative grid h-[30px] min-w-[78px] grid-cols-[auto_auto] items-center gap-1.5 rounded-md border border-white/20 px-2 text-xs font-black text-white shadow-[0_12px_28px_rgba(0,0,0,0.34)] transition hover:-translate-y-0.5"
+      style={{ background: color }}
+      type="button"
+    >
+      <span>{pin.bhk}BHK</span>
+      <span>{formatCompactRent(pin.rent)}</span>
+      {pin.has_listing ? (
+        <span className="absolute -top-4 left-2 rounded bg-[#26c281] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] text-[#07140d]">
+          avail
+        </span>
+      ) : null}
+      {hasRating ? (
+        <span className="absolute -right-2 -top-3 inline-flex h-5 min-w-5 items-center justify-center gap-0.5 rounded-full border border-amber-200/40 bg-[#16110d] px-1 text-[9px] font-black text-amber-300 shadow-[0_8px_18px_rgba(0,0,0,0.32)]">
+          <Star size={9} className="fill-amber-300 text-amber-300" />
+          {pin.rating_avg?.toFixed(1)}
+        </span>
+      ) : null}
+      <span
+        className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45"
+        style={{ background: color }}
+      />
+    </button>
+  );
+}
+
+function ClusterMarker({
+  availableCount,
+  count,
+}: {
+  availableCount: number;
+  count: number;
+}) {
+  return (
+    <button
+      aria-label={`${count} rent pins`}
+      className="relative grid min-h-[52px] min-w-[86px] place-items-center rounded-xl border border-white/18 bg-[#17182c]/95 px-3 py-2 text-center text-white shadow-[0_15px_34px_rgba(0,0,0,0.38)] backdrop-blur-md transition hover:-translate-y-0.5"
+      type="button"
+    >
+      <span className="text-sm font-black leading-none">
+        {count} {count === 1 ? "pin" : "pins"}
+      </span>
+      <span className="mt-1 text-[10px] font-black uppercase tracking-[0.12em] text-white/52">
+        AVLB {availableCount}
+      </span>
+      <span className="absolute left-1/2 top-full h-2.5 w-2.5 -translate-x-1/2 -translate-y-1 rotate-45 border-b border-r border-white/18 bg-[#17182c]" />
+    </button>
+  );
 }
 
 function PinLayer({ pins, camera }: { pins: PublicPin[]; camera: CameraState }) {
@@ -116,20 +200,44 @@ function PinLayer({ pins, camera }: { pins: PublicPin[]; camera: CameraState }) 
     [pins],
   );
 
+  const clusterRadius = useMemo(() => {
+    if (camera.zoom < 11) return 132;
+    if (camera.zoom < 12.5) return 108;
+    if (camera.zoom < 14) return 82;
+    if (camera.zoom < CLUSTER_DISABLE_ZOOM) return 54;
+    return 0;
+  }, [camera.zoom]);
+
   const clusterer = useMemo(() => {
     const index = new Supercluster<PinPointProperties>({
-      radius: 68,
-      maxZoom: 18,
-      minPoints: 3,
+      radius: clusterRadius,
+      maxZoom: CLUSTER_DISABLE_ZOOM - 1,
+      minPoints: 2,
     });
     index.load(points);
     return index;
-  }, [points]);
+  }, [clusterRadius, points]);
 
-  const clusters = clusterer.getClusters(
-    [camera.bounds.west, camera.bounds.south, camera.bounds.east, camera.bounds.north],
-    Math.round(camera.zoom),
-  );
+  const clusters =
+    camera.zoom >= CLUSTER_DISABLE_ZOOM
+      ? points.filter((point) => {
+          const [lng, lat] = point.geometry.coordinates;
+          return (
+            lng >= camera.bounds.west &&
+            lng <= camera.bounds.east &&
+            lat >= camera.bounds.south &&
+            lat <= camera.bounds.north
+          );
+        })
+      : clusterer.getClusters(
+          [
+            camera.bounds.west,
+            camera.bounds.south,
+            camera.bounds.east,
+            camera.bounds.north,
+          ],
+          Math.floor(camera.zoom),
+        );
 
   return (
     <>
@@ -141,6 +249,13 @@ function PinLayer({ pins, camera }: { pins: PublicPin[]; camera: CameraState }) 
         if (isCluster) {
           const clusterFeature = cluster as ClusterFeature<PinPointProperties>;
           const pointCount = clusterFeature.properties.point_count;
+          const leaves = clusterer.getLeaves(
+            clusterFeature.properties.cluster_id,
+            pointCount,
+          );
+          const availableCount = leaves.filter(
+            (leaf) => leaf.properties.pin.has_listing,
+          ).length;
 
           return (
             <AdvancedMarker
@@ -151,19 +266,13 @@ function PinLayer({ pins, camera }: { pins: PublicPin[]; camera: CameraState }) 
                   clusterer.getClusterExpansionZoom(
                     clusterFeature.properties.cluster_id,
                   ),
-                  19,
+                  CLUSTER_DISABLE_ZOOM,
                 );
                 map?.panTo({ lat, lng });
                 map?.setZoom(expansionZoom);
               }}
             >
-              <button
-                aria-label={`${pointCount} rent pins`}
-                className="grid h-12 min-w-12 place-items-center rounded-full border-2 border-white bg-[#16110d] px-3 text-sm font-bold text-white shadow-[0_10px_24px_rgba(0,0,0,0.25)]"
-                type="button"
-              >
-                {pointCount}
-              </button>
+              <ClusterMarker count={pointCount} availableCount={availableCount} />
             </AdvancedMarker>
           );
         }
@@ -176,13 +285,7 @@ function PinLayer({ pins, camera }: { pins: PublicPin[]; camera: CameraState }) 
             position={{ lat: pin.lat, lng: pin.lng }}
             onClick={() => setActivePin(pin)}
           >
-            <Pin
-              background={colorForBhk(pin.bhk)}
-              borderColor="#ffffff"
-              glyph={formatCompactRent(pin.rent)}
-              glyphColor="#ffffff"
-              scale={1.08}
-            />
+            <RentMarker pin={pin} />
           </AdvancedMarker>
         );
       })}
@@ -202,8 +305,13 @@ function MapShell() {
   const [queryBounds, setQueryBounds] = useState<Bounds>(() =>
     expandBounds(defaultBounds),
   );
+  const [filters, setFilters] = useState<PinFilters>(defaultPinFilters);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [listAfterNextPin, setListAfterNextPin] = useState(false);
 
-  const { data, isError, isLoading } = usePins(queryBounds);
+  const { data, isError, isLoading } = usePins(queryBounds, filters);
   const pins = data?.pins ?? [];
   const areaStats = data?.areaStats ?? [];
   const isPinPlacementMode = useMapStore((state) => state.isPinPlacementMode);
@@ -229,6 +337,14 @@ function MapShell() {
   const setWatchlistTargetLocation = useMapStore((state) => state.setWatchlistTargetLocation);
 
   const map = useMap("rent-map");
+  const filterCount = activeFilterCount(filters);
+
+  function showToast(message: string) {
+    setToast(message);
+    window.setTimeout(() => {
+      setToast((current) => (current === message ? null : current));
+    }, 3600);
+  }
 
   function handleCameraChanged(event: MapCameraChangedEvent) {
     const nextBounds = event.detail.bounds || defaultBounds;
@@ -253,20 +369,22 @@ function MapShell() {
     if (isPinPlacementMode) {
       setDraftPinLocation(event.detail.latLng);
       setPinPlacementMode(false);
+      showToast("Great. Fill the short rent form to publish this pin.");
       return;
     }
 
     if (isSeekerMode) {
       setSeekerTargetLocation(event.detail.latLng);
       setSeekerMode(false);
+      showToast("Now add your search details so matches can reach you.");
     }
   }
 
   return (
     <div
       className={cn(
-        "relative h-dvh w-full overflow-hidden bg-[#d8cfc1]",
-        (isPinPlacementMode || isSeekerMode) && "cursor-crosshair",
+        "relative h-dvh w-full overflow-hidden bg-[#0f1120]",
+        (isPinPlacementMode || isSeekerMode) && "map-target-mode",
       )}
     >
       <Map
@@ -299,27 +417,112 @@ function MapShell() {
         <SentinelOverlay visible={showGreenCover} />
       </Map>
 
-      {/* Top bar: logo + search */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 p-3 sm:p-5">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-start">
-          <div className="map-chrome rounded-lg px-4 py-3">
-            <h1 className="font-[var(--font-display)] text-2xl font-semibold leading-none sm:text-3xl">
-              bengaluru.rent
-            </h1>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#61584e]">
-              Anonymous rent map
-            </p>
-          </div>
-          <AreaSearch />
-          <div className="pointer-events-auto ml-auto">
-            <LayerTogglePanel />
+        <div className="mx-auto flex max-w-6xl flex-col gap-3">
+          <GlassSurface
+            width="100%"
+            height="auto"
+            borderRadius={28}
+            borderWidth={0.09}
+            backgroundOpacity={0.32}
+            brightness={38}
+            opacity={0.9}
+            blur={10}
+            saturation={1.7}
+            className="pointer-events-auto min-h-[86px] px-1 py-1"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(8, 23, 36, 0.78), rgba(16, 19, 37, 0.72))",
+            }}
+          >
+            <div className="grid w-full gap-3 px-2 py-2 lg:grid-cols-[220px_1fr_auto] lg:items-center">
+              <div>
+                <h1 className="font-[var(--font-display)] text-2xl font-black leading-none text-white sm:text-3xl">
+                  bengaluru.rent
+                </h1>
+                <p className="mt-1 text-[11px] font-black uppercase tracking-[0.16em] text-white/42">
+                  Anonymous rent radar
+                </p>
+              </div>
+              <AreaSearch />
+              <div className="flex items-center justify-between gap-2 lg:justify-end">
+                <button
+                  className={cn(
+                    "inline-flex h-11 items-center gap-2 rounded-md border px-3 text-xs font-black uppercase tracking-[0.08em] transition",
+                    filters.availableOnly
+                      ? "border-[#26c281] bg-[#26c281] text-[#07140d]"
+                      : "border-white/10 bg-white/[0.06] text-white/72 hover:bg-white/10 hover:text-white",
+                  )}
+                  type="button"
+                  onClick={() =>
+                    setFilters((current) => ({
+                      ...current,
+                      availableOnly: !current.availableOnly,
+                    }))
+                  }
+                >
+                  <Home size={15} />
+                  Avlb flats
+                </button>
+                <button
+                  className={cn(
+                    "relative inline-flex h-11 items-center gap-2 rounded-md border border-white/10 bg-white/[0.06] px-3 text-xs font-black uppercase tracking-[0.08em] text-white/72 transition hover:bg-white/10 hover:text-white",
+                    showFilters && "bg-white/12 text-white",
+                  )}
+                  type="button"
+                  onClick={() => setShowFilters((open) => !open)}
+                >
+                  <SlidersHorizontal size={15} />
+                  Filter
+                  {filterCount ? (
+                    <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#f5a524] px-1 text-[10px] text-[#15110a]">
+                      {filterCount}
+                    </span>
+                  ) : null}
+                </button>
+                <LayerTogglePanel />
+              </div>
+            </div>
+          </GlassSurface>
+
+          <div className="pointer-events-auto mx-auto flex w-full max-w-3xl flex-wrap justify-center gap-2">
+            <CommandButton
+              icon={<Search size={16} />}
+              label="Find a flat"
+              onClick={() => {
+                setActivePin(null);
+                setDraftPinLocation(null);
+                setListAfterNextPin(false);
+                setSeekerMode(true);
+                setPinPlacementMode(false);
+                showToast("Click the map where you want to live.");
+              }}
+            />
+            <CommandButton
+              icon={<BriefcaseBusiness size={16} />}
+              label="List my flat"
+              onClick={() => {
+                setActivePin(null);
+                setDraftPinLocation(null);
+                setListAfterNextPin(true);
+                setSeekerMode(false);
+                setPinPlacementMode(true);
+                showToast(
+                  "Click your flat location. After the rent pin, listing details open automatically.",
+                );
+              }}
+            />
+            <CommandButton
+              icon={<BarChart3 size={16} />}
+              label="Live stats"
+              active={showStats}
+              onClick={() => setShowStats((open) => !open)}
+            />
           </div>
         </div>
       </div>
 
-      {/* Bottom bar: status + action buttons */}
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex items-end justify-between gap-3 p-3 sm:p-5">
-        {/* Left side: area stats + status */}
         <div className="flex flex-col gap-3">
           <NdviLegend visible={showGreenCover} />
           <AreaStatsOverlay
@@ -327,20 +530,21 @@ function MapShell() {
             bounds={camera.bounds}
             serverStats={areaStats}
           />
-          <div className="map-chrome max-w-[72vw] rounded-lg px-4 py-3 text-sm font-medium text-[#61584e]">
+          <div className="command-panel max-w-[78vw] rounded-lg px-4 py-3 text-sm font-black text-white/68">
             {isLoading
               ? "Loading community rent pins..."
               : isError
                 ? "Pins could not load. Check Supabase env vars."
                 : isPinPlacementMode
-                  ? "Tap the map where the home is"
+                  ? listAfterNextPin
+                    ? "Click your flat location"
+                    : "Click the map where the home is"
                   : isSeekerMode
-                    ? "Tap where you want to live"
+                    ? "Click where you want to live"
                     : `${pins.length.toLocaleString("en-IN")} rent pins visible`}
           </div>
         </div>
 
-        {/* Right side: action buttons */}
         <div className="pointer-events-auto flex flex-col gap-2">
           <button
             aria-label="Recenter Bengaluru"
@@ -351,23 +555,15 @@ function MapShell() {
             <LocateFixed size={20} />
           </button>
           <button
-            className="flex h-12 items-center rounded-full bg-white px-4 text-sm font-bold text-[#16110d] shadow-lg transition hover:scale-105"
-            type="button"
-            onClick={() => {
-              setActivePin(null);
-              setSeekerMode(true);
-            }}
-          >
-            <Search className="mr-2" size={18} />
-            Find a flat
-          </button>
-          <button
             className="flex h-12 items-center rounded-full bg-[#16110d] px-4 text-sm font-bold text-white shadow-lg transition hover:scale-105"
             type="button"
             onClick={() => {
               setActivePin(null);
               setDraftPinLocation(null);
+              setListAfterNextPin(false);
+              setSeekerMode(false);
               setPinPlacementMode(true);
+              showToast("Click the home location to drop an anonymous rent pin.");
             }}
           >
             <Plus className="mr-2" size={18} />
@@ -375,6 +571,24 @@ function MapShell() {
           </button>
         </div>
       </div>
+
+      {toast ? (
+        <div className="rent-toast pointer-events-none absolute left-1/2 top-[8.4rem] z-30 max-w-[min(92vw,540px)] -translate-x-1/2 rounded-full border border-[#f5a524]/45 bg-[#151827]/95 px-5 py-3 text-center text-sm font-black text-white shadow-[0_18px_40px_rgba(0,0,0,0.38)] backdrop-blur">
+          {toast}
+        </div>
+      ) : null}
+
+      {showFilters ? (
+        <PinFilterPanel
+          filters={filters}
+          onChange={setFilters}
+          onClose={() => setShowFilters(false)}
+        />
+      ) : null}
+
+      {showStats ? (
+        <LiveStatsPanel pins={pins} onClose={() => setShowStats(false)} />
+      ) : null}
 
       {/* Drop Pin Form — new pin mode */}
       {draftPinLocation ? (
@@ -384,10 +598,16 @@ function MapShell() {
           onClose={() => {
             setDraftPinLocation(null);
             setPinPlacementMode(false);
+            setListAfterNextPin(false);
           }}
           onCreated={(pin) => {
             setDraftPinLocation(null);
-            setActivePin(pin);
+            if (listAfterNextPin) {
+              setListingForPin(pin);
+              setListAfterNextPin(false);
+            } else {
+              setActivePin(pin);
+            }
             map?.panTo({ lat: pin.lat, lng: pin.lng });
             map?.setZoom(16);
           }}
@@ -437,6 +657,34 @@ function MapShell() {
         />
       ) : null}
     </div>
+  );
+}
+
+function CommandButton({
+  active,
+  icon,
+  label,
+  onClick,
+}: {
+  active?: boolean;
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className={cn(
+        "inline-flex h-11 items-center gap-2 rounded-full border px-4 text-sm font-black text-white shadow-[0_12px_28px_rgba(0,0,0,0.26)] backdrop-blur transition hover:-translate-y-0.5",
+        active
+          ? "border-[#f5a524] bg-[#f5a524] text-[#15110a]"
+          : "border-white/12 bg-[#101320]/88 hover:bg-[#181b2e]",
+      )}
+      type="button"
+      onClick={onClick}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
 

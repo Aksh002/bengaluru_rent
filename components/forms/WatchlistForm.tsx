@@ -48,15 +48,15 @@ export function WatchlistForm({
 
   if (success) {
     return (
-      <div className="pointer-events-auto absolute bottom-4 left-4 right-4 z-50 rounded-xl bg-white p-6 shadow-2xl sm:bottom-8 sm:left-auto sm:right-8 sm:w-[400px]">
+      <div className="command-panel pointer-events-auto absolute bottom-4 left-4 right-4 z-50 p-6 sm:bottom-8 sm:left-auto sm:right-8 sm:w-[400px]">
         <div className="flex flex-col items-center text-center">
           <div className="grid h-12 w-12 place-items-center rounded-full bg-emerald-100 text-emerald-600">
             <Bell size={24} />
           </div>
-          <h3 className="mt-4 font-[var(--font-display)] text-xl font-bold text-[#16110d]">
+          <h3 className="mt-4 font-[var(--font-display)] text-xl font-bold text-white">
             Alert Created
           </h3>
-          <p className="mt-2 text-sm text-[#61584e]">
+          <p className="mt-2 text-sm text-white/56">
             We&apos;ll email you as soon as a matching listing is added in this area.
           </p>
           <button
@@ -72,13 +72,13 @@ export function WatchlistForm({
   }
 
   return (
-    <div className="pointer-events-auto absolute bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-white shadow-2xl sm:bottom-8 sm:left-auto sm:right-8 sm:w-[420px] sm:rounded-xl">
-      <div className="flex items-center justify-between border-b border-black/5 px-6 py-4">
-        <h2 className="font-[var(--font-display)] text-xl font-bold text-[#16110d]">
+    <div className="command-panel map-modal-panel pointer-events-auto absolute bottom-0 left-0 right-0 z-50 sm:bottom-8 sm:left-auto sm:right-8 sm:w-[420px]">
+      <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+        <h2 className="font-[var(--font-display)] text-xl font-bold text-white">
           Set Area Alert
         </h2>
         <button
-          className="rounded-full p-2 text-[#61584e] transition hover:bg-black/5"
+          className="rounded-full p-2 text-white/58 transition hover:bg-white/10 hover:text-white"
           type="button"
           onClick={onClose}
         >
@@ -96,11 +96,11 @@ export function WatchlistForm({
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-[#61584e]">
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-white/45">
                 Radius (km)
               </label>
               <select
-                className="w-full rounded-lg border border-black/10 bg-[#fbf9f6] px-3 py-2 text-sm text-[#16110d]"
+                className="w-full rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2 text-sm text-white outline-none"
                 value={radius}
                 onChange={(e) => setRadius(e.target.value)}
               >
@@ -110,11 +110,11 @@ export function WatchlistForm({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-[#61584e]">
+              <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-white/45">
                 BHK (Optional)
               </label>
               <select
-                className="w-full rounded-lg border border-black/10 bg-[#fbf9f6] px-3 py-2 text-sm text-[#16110d]"
+                className="w-full rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2 text-sm text-white outline-none"
                 value={bhk}
                 onChange={(e) => setBhk(e.target.value)}
               >
@@ -129,11 +129,11 @@ export function WatchlistForm({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-[#61584e]">
+            <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-white/45">
               Max Rent (Optional)
             </label>
             <input
-              className="w-full rounded-lg border border-black/10 bg-[#fbf9f6] px-3 py-2 text-sm text-[#16110d] placeholder-black/30"
+              className="w-full rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2 text-sm text-white outline-none placeholder:text-white/30"
               placeholder="e.g. 40000"
               type="number"
               value={maxRent}
@@ -142,27 +142,27 @@ export function WatchlistForm({
           </div>
 
           <div className="pt-2">
-            <h3 className="mb-3 text-sm font-bold text-[#16110d]">
+              <h3 className="mb-3 text-sm font-bold text-white">
               Where should we send alerts?
             </h3>
             <div className="space-y-3">
               <input
                 required
-                className="w-full rounded-lg border border-black/10 bg-[#fbf9f6] px-3 py-2 text-sm text-[#16110d]"
+                className="w-full rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2 text-sm text-white outline-none placeholder:text-white/30"
                 placeholder="Email address"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
               <input
-                className="w-full rounded-lg border border-black/10 bg-[#fbf9f6] px-3 py-2 text-sm text-[#16110d]"
+                className="w-full rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2 text-sm text-white outline-none placeholder:text-white/30"
                 placeholder="Phone number (optional)"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
             </div>
-            <p className="mt-2 text-xs text-[#8c8378]">
+            <p className="mt-2 text-xs text-white/42">
               Your contact info is encrypted and never shared. Alerts expire automatically after 30 days.
             </p>
           </div>

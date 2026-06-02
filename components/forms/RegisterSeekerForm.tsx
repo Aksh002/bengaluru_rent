@@ -94,6 +94,9 @@ export function RegisterSeekerForm({
       setShowSuccess(true);
     },
   });
+  const activeSearchExists =
+    mutation.error instanceof Error &&
+    mutation.error.message.toLowerCase().includes("active flat search");
 
   const canSubmit =
     email.trim().length > 0 &&
@@ -357,7 +360,9 @@ export function RegisterSeekerForm({
 
           {mutation.error ? (
             <p className="rounded-md border border-[#d43c2f]/20 bg-[#fff1ee] px-3 py-2 text-sm font-semibold text-[#9d2b22]">
-              {mutation.error.message}
+              {activeSearchExists
+                ? "You already have an active search from this device. For testing, use another browser/session or deactivate the existing seeker row in Supabase."
+                : mutation.error.message}
             </p>
           ) : null}
         </div>
