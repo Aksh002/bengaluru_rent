@@ -425,6 +425,7 @@ function MapShell() {
           <GlassSurface
             width="100%"
             height="auto"
+            allowOverflow
             borderRadius={28}
             borderWidth={0.09}
             backgroundOpacity={0.56}
@@ -432,7 +433,7 @@ function MapShell() {
             opacity={0.64}
             blur={10}
             saturation={1.28}
-            className="pointer-events-auto min-h-[72px] px-1 py-1 sm:min-h-[86px]"
+            className="pointer-events-auto relative z-20 min-h-[72px] px-1 py-1 sm:min-h-[86px]"
             style={{
               background: "rgba(255, 255, 255, 0.66)",
               border: "1px solid rgba(255, 255, 255, 0.42)",

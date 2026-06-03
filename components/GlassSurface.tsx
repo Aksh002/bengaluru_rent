@@ -41,6 +41,7 @@ export interface GlassSurfaceProps {
     | 'plus-lighter';
   className?: string;
   style?: React.CSSProperties;
+  allowOverflow?: boolean;
 }
 
 const useDarkMode = () => {
@@ -82,7 +83,8 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   yChannel = 'G',
   mixBlendMode = 'difference',
   className = '',
-  style = {}
+  style = {},
+  allowOverflow = false
 }) => {
   const uniqueId = useId().replace(/:/g, '-');
   const filterId = `glass-filter-${uniqueId}`;
@@ -298,7 +300,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   };
 
   const glassSurfaceClasses =
-    'relative flex items-center justify-center overflow-hidden transition-opacity duration-[260ms] ease-out';
+    `relative flex items-center justify-center ${allowOverflow ? 'overflow-visible' : 'overflow-hidden'} transition-opacity duration-[260ms] ease-out`;
 
   const focusVisibleClasses = isDarkMode
     ? 'focus-visible:outline-2 focus-visible:outline-[#0A84FF] focus-visible:outline-offset-2'
